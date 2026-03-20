@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, LogOut, User } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const { data: session } = useSession();
@@ -21,8 +22,8 @@ export function Header() {
 
   const roleLabels: Record<string, string> = {
     admin: 'Quản trị viên',
-    manager: 'Quản lý',
-    staff: 'Nhân viên',
+    seller: 'Nhân viên bán hàng',
+    warranty_staff: 'Nhân viên bảo hành',
   };
 
   return (
@@ -30,10 +31,11 @@ export function Header() {
       <div></div>
 
       <div className="flex items-center gap-3">
+        <NotificationBell />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+              <div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-sm font-semibold">
                 {session?.user?.name?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="text-left hidden md:block">

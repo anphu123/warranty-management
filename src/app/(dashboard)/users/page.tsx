@@ -202,7 +202,7 @@ export default function UsersPage() {
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
                     <TableCell>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                         {roleLabels[user.role] || user.role}
                       </span>
                     </TableCell>

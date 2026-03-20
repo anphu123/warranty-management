@@ -1,101 +1,74 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
-export type ClaimStatus = 'reception' | 'overdue' | 'pending_approval' | 'processing' | 'completed';
+export type ClaimStatus = 'active' | 'pending_approval' | 'approved' | 'processing' | 'completed' | 'rejected' | 'expired';
 
 export interface IWarrantyClaim extends Document {
   _id: mongoose.Types.ObjectId;
   claimCode: string;
   status: ClaimStatus;
-  deviceInfo: {
-    imei: string;
-    brand: string;
-    model: string;
-    purchaseDate?: Date;
-    insuranceDate?: Date;
-    price?: number;
-  };
+
+  // Khách hàng
   customer: {
     name: string;
-    idCard?: string;
     phone: string;
     email?: string;
     address?: string;
-    province?: string;
-    district?: string;
-    ward?: string;
+    idCard?: string;
   };
-  insuranceInfo: {
-    contractCode?: string;
-    insuranceType: 'repair' | 'replacement' | 'extended_warranty';
-    policyNumber?: string;
+
+  // Thiết bị
+  device: {
+    imei: string;
+    brand: string;
+    model: string;
+    type: string;
+    color?: string;
+    purchasePrice?: number;
+    purchaseDate: Date;
   };
-  reception: {
-    receivedFrom: 'direct' | 'shipping';
-    receivedDate: Date;
-    receivedBy?: string;
-    condition?: string;
-    notes?: string;
+
+  // Thời hạn bảo hành
+  warrantyMonths: number;
+  warrantyStartDate: Date;
+  warrantyExpiry: Date;
+
+  // Tình trạng ban đầu (Staff 1 - Seller upload khi bán)
+  initialCondition: string;
+  initialImages: string[];
+
+  // Staff 1 tạo bảo hành
+  createdBy: mongoose.Types.ObjectId;
+  createdByName: string;
+  createdByEmail: string;
+
+  // Tiếp nhận & kiểm tra (Staff 2)
+  reception?: {
+    receivedAt?: Date;
+    receivedBy?: mongoose.Types.ObjectId;
+    receivedByName?: string;
+    conditionReport?: string;
+    conditionImages?: string[];
+    isEligible?: boolean;
+    ineligibleReason?: string;
   };
-  diagnosis?: {
-    mainSymptom?: string;
-    otherSymptoms?: string[];
-    remediation?: string;
-    processingPlan?: string;
-    conclusion?: 'repair_parts' | 'replace_device' | 'return_to_customer';
-    diagnosedBy?: string;
-    diagnosisImages?: string[];
+
+  // Phê duyệt (Staff 1)
+  approval?: {
+    status: 'pending' | 'approved' | 'rejected';
+    decidedBy?: mongoose.Types.ObjectId;
+    decidedAt?: Date;
+    note?: string;
   };
-  quote?: {
-    parts?: Array<{
-      partCode: string;
-      partName: string;
-      quantity: number;
-      unitPrice: number;
-      totalPrice: number;
-    }>;
-    totalAmount?: number;
-    laborCost?: number;
-    grandTotal?: number;
-    quotedBy?: string;
-    quotedByPhone?: string;
-    sentAt?: Date;
-    approvedAt?: Date;
-    approvedBy?: string;
-  };
-  repair?: {
+
+  // Xử lý sửa chữa (Staff 2)
+  processing?: {
     startedAt?: Date;
     completedAt?: Date;
-    parts?: Array<{
-      partCode: string;
-      partName: string;
-      doCode?: string;
-      doDate?: Date;
-      quantity: number;
-      unitPrice: number;
-    }>;
-    afterRepairImages?: string[];
-    repairNotes?: string;
+    repairNote?: string;
+    resultImages?: string[];
   };
-  completion?: {
-    completionStatus?: 'completed_insurance' | 'completed_service';
-    deliveryType?: 'direct' | 'shipping';
-    shippingInfo?: {
-      carrier?: string;
-      trackingCode?: string;
-      weight?: number;
-      fromAddress?: string;
-      toAddress?: string;
-    };
-    returnedAt?: Date;
-    returnNotes?: string;
-  };
-  documents?: {
-    claimForm?: string;
-    jobsheet?: string;
-    jobcard?: string;
-    repairReceipt?: string;
-  };
-  createdBy?: string;
+
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,121 +78,63 @@ const WarrantyClaimSchema = new Schema<IWarrantyClaim>(
     claimCode: { type: String, required: true, unique: true },
     status: {
       type: String,
-      enum: ['reception', 'overdue', 'pending_approval', 'processing', 'completed'],
-      default: 'reception',
-    },
-    deviceInfo: {
-      imei: { type: String, required: true },
-      brand: { type: String, required: true },
-      model: { type: String, required: true },
-      purchaseDate: { type: Date },
-      insuranceDate: { type: Date },
-      price: { type: Number },
+      enum: ['active', 'pending_approval', 'approved', 'processing', 'completed', 'rejected', 'expired'],
+      default: 'active',
     },
     customer: {
       name: { type: String, required: true },
-      idCard: { type: String },
       phone: { type: String, required: true },
       email: { type: String },
       address: { type: String },
-      province: { type: String },
-      district: { type: String },
-      ward: { type: String },
+      idCard: { type: String },
     },
-    insuranceInfo: {
-      contractCode: { type: String },
-      insuranceType: {
-        type: String,
-        enum: ['repair', 'replacement', 'extended_warranty'],
-        default: 'repair',
-      },
-      policyNumber: { type: String },
+    device: {
+      imei: { type: String, required: true },
+      brand: { type: String, required: true },
+      model: { type: String, required: true },
+      type: { type: String, required: true },
+      color: { type: String },
+      purchasePrice: { type: Number },
+      purchaseDate: { type: Date, required: true },
     },
+    warrantyMonths: { type: Number, required: true, default: 12 },
+    warrantyStartDate: { type: Date, required: true },
+    warrantyExpiry: { type: Date, required: true },
+    initialCondition: { type: String, required: true },
+    initialImages: [{ type: String }],
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    createdByName: { type: String, required: true },
+    createdByEmail: { type: String, required: true },
     reception: {
-      receivedFrom: { type: String, enum: ['direct', 'shipping'], default: 'direct' },
-      receivedDate: { type: Date, default: Date.now },
-      receivedBy: { type: String },
-      condition: { type: String },
-      notes: { type: String },
+      receivedAt: { type: Date },
+      receivedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      receivedByName: { type: String },
+      conditionReport: { type: String },
+      conditionImages: [{ type: String }],
+      isEligible: { type: Boolean },
+      ineligibleReason: { type: String },
     },
-    diagnosis: {
-      mainSymptom: { type: String },
-      otherSymptoms: [{ type: String }],
-      remediation: { type: String },
-      processingPlan: { type: String },
-      conclusion: {
-        type: String,
-        enum: ['repair_parts', 'replace_device', 'return_to_customer'],
-      },
-      diagnosedBy: { type: String },
-      diagnosisImages: [{ type: String }],
+    approval: {
+      status: { type: String, enum: ['pending', 'approved', 'rejected'] },
+      decidedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      decidedAt: { type: Date },
+      note: { type: String },
     },
-    quote: {
-      parts: [
-        {
-          partCode: { type: String },
-          partName: { type: String },
-          quantity: { type: Number },
-          unitPrice: { type: Number },
-          totalPrice: { type: Number },
-        },
-      ],
-      totalAmount: { type: Number },
-      laborCost: { type: Number },
-      grandTotal: { type: Number },
-      quotedBy: { type: String },
-      quotedByPhone: { type: String },
-      sentAt: { type: Date },
-      approvedAt: { type: Date },
-      approvedBy: { type: String },
-    },
-    repair: {
+    processing: {
       startedAt: { type: Date },
       completedAt: { type: Date },
-      parts: [
-        {
-          partCode: { type: String },
-          partName: { type: String },
-          doCode: { type: String },
-          doDate: { type: Date },
-          quantity: { type: Number },
-          unitPrice: { type: Number },
-        },
-      ],
-      afterRepairImages: [{ type: String }],
-      repairNotes: { type: String },
+      repairNote: { type: String },
+      resultImages: [{ type: String }],
     },
-    completion: {
-      completionStatus: {
-        type: String,
-        enum: ['completed_insurance', 'completed_service'],
-      },
-      deliveryType: { type: String, enum: ['direct', 'shipping'] },
-      shippingInfo: {
-        carrier: { type: String },
-        trackingCode: { type: String },
-        weight: { type: Number },
-        fromAddress: { type: String },
-        toAddress: { type: String },
-      },
-      returnedAt: { type: Date },
-      returnNotes: { type: String },
-    },
-    documents: {
-      claimForm: { type: String },
-      jobsheet: { type: String },
-      jobcard: { type: String },
-      repairReceipt: { type: String },
-    },
-    createdBy: { type: String },
+    notes: { type: String },
   },
   { timestamps: true }
 );
 
-WarrantyClaimSchema.index({ claimCode: 1 });
-WarrantyClaimSchema.index({ 'deviceInfo.imei': 1 });
+WarrantyClaimSchema.index({ 'device.imei': 1 });
 WarrantyClaimSchema.index({ status: 1 });
-WarrantyClaimSchema.index({ createdAt: -1 });
+WarrantyClaimSchema.index({ createdBy: 1 });
+WarrantyClaimSchema.index({ warrantyExpiry: 1 });
 
 const WarrantyClaim: Model<IWarrantyClaim> =
   mongoose.models.WarrantyClaim ||

@@ -60,7 +60,7 @@ export function RecentClaims({ claims }: RecentClaimsProps) {
               claims.map((claim) => (
                 <TableRow key={claim._id} className="hover:bg-gray-50">
                   <TableCell>
-                    <Link href={`/claims/${claim._id}`} className="text-blue-600 hover:underline font-medium">
+                    <Link href={`/claims/${claim._id}`} className="text-green-700 hover:underline font-medium">
                       {claim.claimCode}
                     </Link>
                   </TableCell>

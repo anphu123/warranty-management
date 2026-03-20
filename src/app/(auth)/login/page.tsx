@@ -42,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
@@ -67,7 +67,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@globalsafe.vn"
+                  placeholder="admin@refurbest.vn"
                   required
                   autoComplete="email"
                 />
@@ -98,8 +98,8 @@ export default function LoginPage() {
 
             <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
               <p className="font-medium mb-2">Tài khoản mẫu:</p>
-              <p>Admin: admin@globalsafe.vn / Admin@123456</p>
-              <p>Staff: staff@ttbh.vn / Staff@123456</p>
+              <p>Admin: admin@refurbest.vn / Admin@123456</p>
+              <p>Staff: seller@refurbest.vn / Seller@123456</p>
             </div>
           </CardContent>
         </Card>

@@ -1,155 +1,183 @@
 'use client';
-
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { PageHeader } from '@/components/layout/PageHeader';
-import { ReceptionForm } from '@/components/claims/ReceptionForm';
-import { Search, Plus } from 'lucide-react';
-import { ClaimStatusBadge } from '@/components/claims/ClaimStatusBadge';
-import Link from 'next/link';
-import { formatDate } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { ImageUpload } from '@/components/claims/ImageUpload';
 
-interface ExistingClaim {
-  _id: string;
-  claimCode: string;
-  status: string;
-  deviceInfo: { imei: string; brand: string; model: string };
-  customer: { name: string; phone: string };
-  createdAt: string;
-}
+const BRANDS = ['Apple', 'Samsung', 'Xiaomi', 'OPPO', 'Vivo', 'Realme', 'Nokia', 'Sony', 'Khác'];
+const DEVICE_TYPES = ['Điện thoại', 'Laptop', 'Tablet', 'Smartwatch', 'Khác'];
 
 export default function NewClaimPage() {
-  const [imeiSearch, setImeiSearch] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [searchDone, setSearchDone] = useState(false);
-  const [existingClaims, setExistingClaims] = useState<ExistingClaim[]>([]);
-  const [showForm, setShowForm] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [initialImages, setInitialImages] = useState<string[]>([]);
 
-  const handleSearch = async () => {
-    if (!imeiSearch.trim()) return;
+  const [form, setForm] = useState({
+    customerName: '', customerPhone: '', customerEmail: '', customerAddress: '', customerIdCard: '',
+    imei: '', brand: '', model: '', deviceType: 'Điện thoại', color: '', purchasePrice: '', purchaseDate: '',
+    warrantyMonths: '12',
+    initialCondition: 'Máy mới, nguyên seal, chưa có hư hỏng',
+    notes: '',
+  });
 
-    setSearching(true);
+  const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setError('');
     try {
-      const res = await fetch(`/api/claims?search=${imeiSearch}`);
+      const res = await fetch('/api/claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: { name: form.customerName, phone: form.customerPhone, email: form.customerEmail, address: form.customerAddress, idCard: form.customerIdCard },
+          device: { imei: form.imei, brand: form.brand, model: form.model, type: form.deviceType, color: form.color, purchasePrice: Number(form.purchasePrice), purchaseDate: form.purchaseDate },
+          warrantyMonths: Number(form.warrantyMonths),
+          initialCondition: form.initialCondition,
+          initialImages,
+          notes: form.notes,
+        }),
+      });
       const data = await res.json();
-      setExistingClaims(data.claims || []);
-      setSearchDone(true);
-    } catch (error) {
-      console.error(error);
+      if (!res.ok) throw new Error(data.error || 'Lỗi tạo bảo hành');
+      router.push(`/claims/${data._id}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Lỗi');
     } finally {
-      setSearching(false);
+      setLoading(false);
     }
   };
 
-  const handleCreateNew = () => {
-    setShowForm(true);
-  };
-
-  if (showForm) {
-    return (
-      <div>
-        <PageHeader title="Tạo hồ sơ mới" description={`IMEI: ${imeiSearch}`} />
-        <ReceptionForm defaultImei={imeiSearch} />
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <PageHeader title="Tạo hồ sơ bảo hành mới" description="Tìm kiếm IMEI để kiểm tra lịch sử trước khi tạo mới" />
-
-      <div className="max-w-2xl">
-        <Card>
-          <CardContent className="pt-6">
-            <Label className="text-base font-medium">Tìm kiếm theo IMEI / Serial</Label>
-            <p className="text-sm text-gray-500 mb-4 mt-1">
-              Nhập IMEI hoặc serial number của thiết bị để kiểm tra lịch sử bảo hành
-            </p>
-
-            <div className="flex gap-3">
-              <Input
-                placeholder="VD: 356938035643809"
-                value={imeiSearch}
-                onChange={(e) => setImeiSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1"
-              />
-              <Button onClick={handleSearch} disabled={searching || !imeiSearch.trim()}>
-                <Search className="w-4 h-4 mr-2" />
-                {searching ? 'Đang tìm...' : 'Tìm kiếm'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {searchDone && (
-          <div className="mt-6">
-            {existingClaims.length > 0 ? (
-              <div>
-                <h3 className="font-medium text-gray-800 mb-3">
-                  Tìm thấy {existingClaims.length} hồ sơ liên quan:
-                </h3>
-                <div className="space-y-3">
-                  {existingClaims.map((claim) => (
-                    <Card key={claim._id} className="border border-orange-200 bg-orange-50">
-                      <CardContent className="pt-4 pb-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Link href={`/claims/${claim._id}`} className="font-semibold text-blue-600 hover:underline">
-                                {claim.claimCode}
-                              </Link>
-                              <ClaimStatusBadge status={claim.status} />
-                            </div>
-                            <p className="text-sm text-gray-700">
-                              IMEI: <span className="font-mono">{claim.deviceInfo.imei}</span>
-                            </p>
-                            <p className="text-sm text-gray-700">
-                              {claim.deviceInfo.brand} {claim.deviceInfo.model}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              KH: {claim.customer.name} | {claim.customer.phone}
-                            </p>
-                            <p className="text-xs text-gray-500">Ngày tạo: {formatDate(claim.createdAt)}</p>
-                          </div>
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/claims/${claim._id}`}>Xem chi tiết</Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex items-center gap-3">
-                  <p className="text-sm text-gray-600">Vẫn muốn tạo hồ sơ mới cho IMEI này?</p>
-                  <Button variant="outline" onClick={handleCreateNew}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Tạo mới
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="font-medium text-gray-800 mb-2">Chưa có hồ sơ nào</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  IMEI <span className="font-mono font-medium">{imeiSearch}</span> chưa có hồ sơ bảo hành nào
-                </p>
-                <Button onClick={handleCreateNew}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tạo hồ sơ mới
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Tạo phiếu bảo hành</h1>
+        <p className="text-sm text-gray-500 mt-1">Điền đầy đủ thông tin khi bán hàng</p>
       </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Khách hàng */}
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span className="w-6 h-6 bg-green-700 text-white rounded-full text-xs flex items-center justify-center">1</span>
+            Thông tin khách hàng
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Họ tên <span className="text-red-500">*</span></label>
+              <input required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.customerName} onChange={e => set('customerName', e.target.value)} placeholder="Nguyễn Văn A" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại <span className="text-red-500">*</span></label>
+              <input required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.customerPhone} onChange={e => set('customerPhone', e.target.value)} placeholder="0901234567" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.customerEmail} onChange={e => set('customerEmail', e.target.value)} placeholder="email@gmail.com" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CCCD/CMND</label>
+              <input className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.customerIdCard} onChange={e => set('customerIdCard', e.target.value)} placeholder="012345678901" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+              <input className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.customerAddress} onChange={e => set('customerAddress', e.target.value)} placeholder="123 Đường ABC, Quận 1, TP.HCM" />
+            </div>
+          </div>
+        </div>
+
+        {/* Thiết bị */}
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span className="w-6 h-6 bg-green-700 text-white rounded-full text-xs flex items-center justify-center">2</span>
+            Thông tin thiết bị
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">IMEI / Serial Number <span className="text-red-500">*</span></label>
+              <input required className="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.imei} onChange={e => set('imei', e.target.value)} placeholder="356938035643809" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hãng <span className="text-red-500">*</span></label>
+              <select required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.brand} onChange={e => set('brand', e.target.value)}>
+                <option value="">Chọn hãng</option>
+                {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Model <span className="text-red-500">*</span></label>
+              <input required className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.model} onChange={e => set('model', e.target.value)} placeholder="iPhone 15 Pro Max" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Loại thiết bị</label>
+              <select className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.deviceType} onChange={e => set('deviceType', e.target.value)}>
+                {DEVICE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Màu sắc</label>
+              <input className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.color} onChange={e => set('color', e.target.value)} placeholder="Black Titanium" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Giá bán (VND)</label>
+              <input type="number" className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.purchasePrice} onChange={e => set('purchasePrice', e.target.value)} placeholder="25000000" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ngày mua <span className="text-red-500">*</span></label>
+              <input required type="date" className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.purchaseDate} onChange={e => set('purchaseDate', e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Bảo hành */}
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span className="w-6 h-6 bg-green-700 text-white rounded-full text-xs flex items-center justify-center">3</span>
+            Thời hạn bảo hành
+          </h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Thời hạn</label>
+            <div className="flex gap-3">
+              {['3', '6', '12', '18', '24'].map(m => (
+                <button key={m} type="button"
+                  className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${form.warrantyMonths === m ? 'bg-green-700 text-white border-green-700' : 'border-gray-300 hover:border-green-500'}`}
+                  onClick={() => set('warrantyMonths', m)}>{m} tháng</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tình trạng ban đầu */}
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span className="w-6 h-6 bg-green-700 text-white rounded-full text-xs flex items-center justify-center">4</span>
+            Tình trạng sản phẩm khi bán
+          </h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả tình trạng <span className="text-red-500">*</span></label>
+            <textarea required rows={3} className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.initialCondition} onChange={e => set('initialCondition', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh tình trạng ban đầu</label>
+            <ImageUpload images={initialImages} onImagesChange={setInitialImages} maxImages={8} />
+          </div>
+        </div>
+
+        {/* Ghi chú */}
+        <div className="bg-white rounded-xl border p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú thêm</label>
+          <textarea rows={2} className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Phụ kiện đi kèm, yêu cầu đặc biệt..." />
+        </div>
+
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+
+        <div className="flex gap-3">
+          <button type="button" onClick={() => router.back()} className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50">Hủy</button>
+          <button type="submit" disabled={loading} className="flex-1 bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-800 disabled:opacity-50">
+            {loading ? 'Đang tạo...' : 'Tạo phiếu bảo hành'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

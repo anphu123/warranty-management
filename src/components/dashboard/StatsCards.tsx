@@ -21,9 +21,9 @@ export function StatsCards({ stats }: StatsCardsProps) {
       title: 'Tiếp nhận',
       value: stats.reception,
       icon: FileText,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
+      color: 'text-green-700',
+      bg: 'bg-green-50',
+      border: 'border-green-200',
     },
     {
       title: 'Quá hạn',

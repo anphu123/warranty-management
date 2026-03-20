@@ -229,7 +229,7 @@ export function QuoteForm({ claimId, defaultValues, onSaved }: QuoteFormProps) {
             </div>
             <div className="flex justify-end gap-8 border-t pt-2">
               <span className="text-gray-800 font-semibold">Tổng cộng:</span>
-              <span className="font-bold text-lg text-blue-600">{formatCurrency(grandTotal)}</span>
+              <span className="font-bold text-lg text-green-700">{formatCurrency(grandTotal)}</span>
             </div>
           </div>
         </CardContent>

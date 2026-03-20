@@ -146,7 +146,7 @@ function ClaimsContent() {
                 claims.map((claim) => (
                   <TableRow key={claim._id} className="hover:bg-gray-50">
                     <TableCell>
-                      <Link href={`/claims/${claim._id}`} className="text-blue-600 hover:underline font-medium text-sm">
+                      <Link href={`/claims/${claim._id}`} className="text-green-700 hover:underline font-medium text-sm">
                         {claim.claimCode}
                       </Link>
                     </TableCell>

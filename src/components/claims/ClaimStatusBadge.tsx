@@ -12,7 +12,7 @@ interface ClaimStatusBadgeProps {
 const statusConfig: Record<string, { label: string; className: string }> = {
   reception: {
     label: 'Tiếp nhận',
-    className: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+    className: 'bg-green-100 text-green-800 hover:bg-green-100',
   },
   overdue: {
     label: 'Quá hạn',

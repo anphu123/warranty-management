@@ -19,7 +19,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-lg">
+              <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-white font-semibold text-lg">
                 {session?.user?.name?.[0]?.toUpperCase() || 'U'}
               </div>
               <div>
