@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,10 +46,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <ShieldCheck className="w-9 h-9 text-white" />
+          <div className="mb-4">
+            <Image src="https://refurbest.vn/Refurbest.png" alt="Refurbest" width={120} height={48} className="object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">GlobalSafe</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Refurbest</h1>
           <p className="text-gray-500 mt-1">Hệ thống quản lý bảo hành</p>
         </div>
 

@@ -8,8 +8,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'GlobalSafe - Quản lý bảo hành',
-  description: 'Hệ thống quản lý bảo hành GlobalSafe',
+  title: 'Refurbest - Quản lý bảo hành',
+  description: 'Hệ thống quản lý bảo hành Refurbest',
 };
 
 export default function RootLayout({

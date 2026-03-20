@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -9,7 +10,6 @@ import {
   Wrench,
   Users,
   Settings,
-  ShieldCheck,
 } from 'lucide-react';
 
 const navigation = [
@@ -27,13 +27,7 @@ export function Sidebar() {
     <div className="fixed inset-y-0 left-0 z-40 w-64 bg-gray-900 text-white flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
-        <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center">
-          <ShieldCheck className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <p className="font-bold text-base leading-tight">GlobalSafe</p>
-          <p className="text-xs text-gray-400">Quản lý bảo hành</p>
-        </div>
+        <Image src="https://refurbest.vn/Refurbest.png" alt="Refurbest" width={110} height={36} className="object-contain brightness-0 invert" />
       </div>
 
       {/* Navigation */}
@@ -62,7 +56,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-gray-700">
-        <p className="text-xs text-gray-500">v1.0.0 © 2024 GlobalSafe</p>
+        <p className="text-xs text-gray-500">v1.0.0 © 2025 Refurbest</p>
       </div>
     </div>
   );

@@ -4,9 +4,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'GlobalSafe Warranty Management API',
+      title: 'Refurbest Warranty Management API',
       version: '1.0.0',
-      description: 'API quản lý bảo hành GlobalSafe',
+      description: 'API quản lý bảo hành Refurbest',
     },
     servers: [{ url: '/api' }],
     components: {

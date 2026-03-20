@@ -53,7 +53,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Tên hệ thống</span>
-              <span className="font-medium">GlobalSafe Warranty Management</span>
+              <span className="font-medium">Refurbest Warranty Management</span>
             </div>
             <Separator />
             <div className="flex justify-between">
