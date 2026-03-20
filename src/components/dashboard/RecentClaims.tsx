@@ -18,7 +18,7 @@ interface Claim {
   _id: string;
   claimCode: string;
   status: string;
-  deviceInfo: { imei: string; brand: string; model: string };
+  device: { imei: string; brand: string; model: string };
   customer: { name: string; phone: string };
   createdAt: string;
   updatedAt: string;
@@ -64,14 +64,14 @@ export function RecentClaims({ claims }: RecentClaimsProps) {
                       {claim.claimCode}
                     </Link>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{claim.deviceInfo.imei}</TableCell>
+                  <TableCell className="font-mono text-sm">{claim.device.imei}</TableCell>
                   <TableCell>
                     <div>{claim.customer.name}</div>
                     <div className="text-xs text-gray-500">{claim.customer.phone}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{claim.deviceInfo.brand}</div>
-                    <div className="text-xs text-gray-500">{claim.deviceInfo.model}</div>
+                    <div className="font-medium">{claim.device.brand}</div>
+                    <div className="text-xs text-gray-500">{claim.device.model}</div>
                   </TableCell>
                   <TableCell>
                     <ClaimStatusBadge status={claim.status} />

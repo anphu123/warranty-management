@@ -16,7 +16,7 @@ export async function GET() {
         WarrantyClaim.find()
           .sort({ createdAt: -1 })
           .limit(10)
-          .select('claimCode status deviceInfo customer createdAt updatedAt')
+          .select('claimCode status device customer createdAt updatedAt')
           .lean(),
       ]);
 

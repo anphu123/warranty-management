@@ -21,7 +21,7 @@ export function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
 
   const load = async () => {
-    const r = await fetch('/api/notifications');
+    const r = await fetch('/api/notifications', { headers: { Accept: 'application/json' } });
     const d = await r.json();
     setNotifs(d.notifications || []);
     setUnread(d.unreadCount || 0);
