@@ -1,3 +1,6 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+config({ path: resolve(process.cwd(), '.env.local') });
 import mongoose from 'mongoose';
 import User from './models/User';
 import SparePart from './models/SparePart';

@@ -8,8 +8,9 @@ export default auth((req: NextRequest & { auth?: { user?: unknown } | null }) =>
 
   const isAuthPage = nextUrl.pathname.startsWith('/login');
   const isApiRoute = nextUrl.pathname.startsWith('/api');
+  const isApiDocs = nextUrl.pathname.startsWith('/api-docs');
 
-  if (isApiRoute) return NextResponse.next();
+  if (isApiRoute || isApiDocs) return NextResponse.next();
 
   if (!isLoggedIn && !isAuthPage) {
     return NextResponse.redirect(new URL('/login', nextUrl));
